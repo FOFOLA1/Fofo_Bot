@@ -1,12 +1,21 @@
-#import discord
+# import discord
 from discord import Intents, Interaction, app_commands, Embed, Color, Message
 from discord.ext import commands
 from os import getenv
+import logging
 from aiohttp import ClientSession
 from dotenv import load_dotenv
 
 # 1. Load environment variables
 load_dotenv()
+
+# Setup logging
+logging.basicConfig(
+    filename="bot_activity.log",
+    level=logging.INFO,
+    format="%(asctime)s | %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
 
 # 2. Fetch variables
 TOKEN = getenv("DISCORD_TOKEN")
@@ -102,6 +111,9 @@ def main():
     @bot.tree.command(name="restart", description="Restart the bot")
     @app_commands.check(is_bot_owner)
     async def restart_command(interaction: Interaction):
+        logging.info(
+            f"User: {interaction.user.name} ({interaction.user.id}) | Action: /restart | Target Message: N/A"
+        )
         await interaction.response.send_message("Restarting...", ephemeral=True)
         await bot.close()
 
@@ -115,6 +127,9 @@ def main():
     @app_commands.allowed_installs(guilds=True, users=True)
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
     async def deidiotize_context(interaction: Interaction, message: Message):
+        logging.info(
+            f"User: {interaction.user.name} ({interaction.user.id}) | Action: De-idiotize | Target Message: {message.content!r} ({message.id})"
+        )
         original_text = message.content
 
         if not original_text:
@@ -140,9 +155,10 @@ def main():
     @bot.tree.context_menu(name="De-idiotize_Ephemeral")
     @app_commands.allowed_installs(guilds=True, users=True)
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
-    async def deidiotize_context_ephemeral(
-        interaction: Interaction, message: Message
-    ):
+    async def deidiotize_context_ephemeral(interaction: Interaction, message: Message):
+        logging.info(
+            f"User: {interaction.user.name} ({interaction.user.id}) | Action: De-idiotize_Ephemeral | Target Message: {message.content!r} ({message.id})"
+        )
         original_text = message.content
 
         if not original_text:
