@@ -1,0 +1,13 @@
+services:
+    bot:
+        image: python:3.11-slim
+        working_dir: /app
+        volumes:
+            - .:/app
+        entrypoint: ["sh", "-c", "pip install --no-cache-dir -r requirements.txt && exec \"$@\"", "--"]
+        command: ["python", "main.py"]
+        environment:
+            - DISCORD_TOKEN=<your_discord_token_here>
+            - GOOGLE_API_KEY=<your_google_api_key_here>
+            - BOT_OWNER_ID=<your_bot_owner_id_here>
+        restart: on-failure
