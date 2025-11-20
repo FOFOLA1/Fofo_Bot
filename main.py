@@ -3,6 +3,8 @@ from discord import Intents, Interaction, app_commands, Embed, Color, Message
 from discord.ext import commands
 from os import getenv
 import logging
+import signal
+import sys
 from aiohttp import ClientSession
 from dotenv import load_dotenv
 
@@ -123,12 +125,12 @@ def main():
             "You must be the bot owner to do that!", ephemeral=True
         )
 
-    @bot.tree.context_menu(name="De-idiotize")
+    @bot.tree.context_menu(name="De-Idiotize")
     @app_commands.allowed_installs(guilds=True, users=True)
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
     async def deidiotize_context(interaction: Interaction, message: Message):
         logging.info(
-            f"User: {interaction.user.name} ({interaction.user.id}) | Action: De-idiotize | Target Message: {message.content!r} ({message.id})"
+            f"User: {interaction.user.name} ({interaction.user.id}) | Action: De-Idiotize | Target Message: {message.content!r} ({message.id})"
         )
         original_text = message.content
 
@@ -148,16 +150,17 @@ def main():
             await interaction.followup.send(fixed_text)
 
         except Exception as e:
+            logging.error(f"Error in De-Idiotize: {str(e)}")
             await interaction.followup.send(
                 f"Something went wrong: {str(e)}", ephemeral=True
             )
 
-    @bot.tree.context_menu(name="De-idiotize_Ephemeral")
+    @bot.tree.context_menu(name="De-Idiotize Ephemeral")
     @app_commands.allowed_installs(guilds=True, users=True)
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
     async def deidiotize_context_ephemeral(interaction: Interaction, message: Message):
         logging.info(
-            f"User: {interaction.user.name} ({interaction.user.id}) | Action: De-idiotize_Ephemeral | Target Message: {message.content!r} ({message.id})"
+            f"User: {interaction.user.name} ({interaction.user.id}) | Action: De-Idiotize Ephemeral | Target Message: {message.content!r} ({message.id})"
         )
         original_text = message.content
 
@@ -176,6 +179,7 @@ def main():
             await interaction.followup.send(embed=embed, ephemeral=True)
 
         except Exception as e:
+            logging.error(f"Error in De-Idiotize Ephemeral: {str(e)}")
             await interaction.followup.send(
                 f"Something went wrong: {str(e)}", ephemeral=True
             )
@@ -183,6 +187,15 @@ def main():
     if not TOKEN:
         print("CRITICAL ERROR: DISCORD_TOKEN is missing from .env file")
         return
+
+    # Handle SIGTERM (Docker stop signal) to ensure graceful shutdown
+    def signal_handler(sig, frame):
+        logging.info("Received SIGTERM, shutting down...")
+        print("\nReceived SIGTERM, shutting down...")
+        # Raising KeyboardInterrupt allows bot.run() to handle the shutdown gracefully
+        raise KeyboardInterrupt
+
+    signal.signal(signal.SIGTERM, signal_handler)
 
     bot.run(TOKEN)
 
